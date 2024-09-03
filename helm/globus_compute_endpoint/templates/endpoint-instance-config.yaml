@@ -10,7 +10,7 @@ metadata:
 data:
   config.py: |
     from globus_compute_endpoint.endpoint.utils.config import Config
-    from globus_compute_endpoint.engines import HighThroughputEngine
+    from globus_compute_endpoint.engines import GlobusComputeEngine
     from globus_compute_endpoint.providers.kubernetes.kube import KubernetesProvider
     from globus_compute_endpoint.strategies import KubeSimpleStrategy
     from parsl.addresses import address_by_route
@@ -18,12 +18,11 @@ data:
     config = Config(
         display_name="{{ coalesce .Values.endpointDisplayName .Values.endpointName .Release.Name }}",
         executors=[
-            HighThroughputEngine(
+            GlobusComputeEngine(
+                encrypted=False,
                 max_workers_per_node={{ .Values.maxWorkersPerPod }},
                 address=address_by_route(),
-                strategy=KubeSimpleStrategy(max_idletime={{ .Values.maxIdleTime }}),
-                container_type='docker',
-                scheduler_mode='hard',
+                job_status_kwargs={'max_idletime': {{ .Values.maxIdleTime }}},
                 worker_debug={{- ternary "True" "False" .Values.workerDebug }},
                 working_dir='{{ .Values.logDir }}',
                 provider=KubernetesProvider(
@@ -37,10 +36,10 @@ data:
                     image="{{ .Values.workerImage }}",
                     worker_init='{{ .Values.workerInit }}',
                     namespace='{{ .Values.workerNamespace }}',
+                    pod_name='globus-compute-pod',
                     {{- if .Values.imagePullSecret }}
                     secret='{{ .Values.imagePullSecret }}',
                     {{- end }}
-                    incluster_config=True
                 ),
             )
         ],

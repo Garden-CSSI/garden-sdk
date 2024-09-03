@@ -4,8 +4,8 @@
 
 funcXServiceAddress: https://compute.api.globus.org
 image:
-  repository: funcx/kube-endpoint
-  tag: main-3.10
+  repository: gardenai/kube-endpoint
+  tag: latest
   pullPolicy: Always
 
 workerDebug: false
